@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    #grid {
+    display: grid;
+    grid-template-columns: 200px 200px 200px 200px;
+    gap: 10px;
+    }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  #grid> div {
+    border-radius: 5px;
+    background-color: #efefe6;
+    padding: 1em;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    font-size: 30px;
+    user-select: none; 
+    moz-user-select: none;
+    webkit-text-select: none; 
+    webkit-user-select: none;
+  }
+
+  h1 {
+    font-weight: normal;
+  }
+  </style>
+
+</head>
+<body>
+  <h1>Create four groups of four!</h1>
+  <div id="grid">
+    <div>Ball</div>
+    <div>Fang</div>
+    <div>Tusk</div>
+    <div>Slight</div>
+    <div>Labor</div>
+    <div>Little</div>
+    <div>Earth</div>
+    <div>Kick</div>
+    <div>Canine</div>
+    <div>May</div>
+    <div>Molar</div>
+    <div>Dinky</div>
+    <div>Minute</div>
+    <div>Groundhog</div>
+    <div>Blast</div>
+    <div>Riot</div>
+  </div>
+  <p>Mistakes remaining:</p>
+<script>
+  const grid = document.getElementById("grid");
+  for (const box of grid.children) {
+    box.addEventListener("click", () => {
+      if (box.style.backgroundColor == "rgb(90, 89, 78)") {
+        box.style.backgroundColor = "#efefe6"
+      } else {
+        box.style.backgroundColor = "#5a594e"
+      }
+    });
+  }
+</script>
+</body>
