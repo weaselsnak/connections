@@ -3,9 +3,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     #grid {
-    display: grid;
-    grid-template-columns: 200px 200px 200px 200px;
-    gap: 10px;
+      display: grid;
+      grid-template-columns: 200px 200px 200px 200px;
+      gap: 10px;
     }
 
   * {
@@ -24,6 +24,7 @@
     moz-user-select: none;
     webkit-text-select: none; 
     webkit-user-select: none;
+    cursor: pointer
   }
 
   h1 {
@@ -53,16 +54,52 @@
     <div>Riot</div>
   </div>
   <p>Mistakes remaining:</p>
+  <button id ="submitButton" type="submit" disabled>Try it!</button>
+
 <script>
   const grid = document.getElementById("grid");
-  for (const box of grid.children) {
-    box.addEventListener("click", () => {
-      if (box.style.backgroundColor == "rgb(90, 89, 78)") {
-        box.style.backgroundColor = "#efefe6"
-      } else {
-        box.style.backgroundColor = "#5a594e"
-      }
-    });
+  const answers = [
+    ["canine", "molar", "fang", "tusk"],
+    ["dinky", "minute", "slight", "little"],
+    ["ball", "blast", "riot", "kick"],
+    ["labor", "may", "earth", "groundhog"]
+  ]
+
+  function noOfHighlightedCells() {
+    return document.querySelectorAll('.highlighted').length
   }
+
+  const submitButton = document.getElementById("submitButton");
+  submitButton.addEventListener("click", () => {
+    tryWords();
+  });
+  grid.addEventListener("click", (e) => {
+    const cell = e.target;
+    if (cell.id == "grid") { // we don't want to process clicks that happen on the entire grid (e.g. when clicking inbetween grid cells)
+      return
+    }
+    if (cell.classList.contains("highlighted")) {
+      cell.classList.remove("highlighted");
+      cell.style.backgroundColor = "#efefe6";
+    } else if (noOfHighlightedCells() < 4) {
+      cell.style.backgroundColor = "#5a594e";
+      cell.classList.add("highlighted");
+    }
+
+    if (noOfHighlightedCells() == 4) {
+      submitButton.disabled = false;
+    } else {
+      submitButton.disabled = true;
+    }
+  });
+  function tryWords() {
+    const grid = document.getElementById("grid");
+    for (const cell of grid.children) {
+      if (cell.classList.contains("highlighted")) {
+        console.log(cell.innerText);
+      }
+    }
+  }
+
 </script>
 </body>
