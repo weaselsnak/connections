@@ -1,105 +1,260 @@
-<!DOCTYPE html>
+<!doctype html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    #grid {
-      display: grid;
-      grid-template-columns: 200px 200px 200px 200px;
-      gap: 10px;
-    }
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
 
-  * {
-    box-sizing: border-box;
-  }
+        body {
+            place-items: center;
+            height: 100%;
+            display: grid;
+        }
+        #grid {
+            display: grid;
+            grid-template-columns: 200px 200px 200px 200px;
+            gap: 10px;
+        }
 
-  #grid> div {
-    border-radius: 5px;
-    background-color: #efefe6;
-    padding: 1em;
-    color: black;
-    font-weight: bold;
-    text-align: center;
-    font-size: 30px;
-    user-select: none; 
-    moz-user-select: none;
-    webkit-text-select: none; 
-    webkit-user-select: none;
-    cursor: pointer
-  }
+        * {
+            box-sizing: border-box;
+        }
 
-  h1 {
-    font-weight: normal;
-  }
-  </style>
+        #grid > div {
+            border-radius: 5px;
+            background-color: #efefe6;
+            padding-top: 1em;
+            padding-bottom: 1em;
+            color: black;
+            font-weight: bold;
+            text-align: center;
+            font-size: 30px;
+            user-select: none;
+            moz-user-select: none;
+            webkit-text-select: none;
+            webkit-user-select: none;
+            cursor: pointer;
+            position: relative;
+            transition:
+                top 0.8s,
+                left 0.8s;
+            transition-timing-function: ease-in-out;
+            left: 0px;
+            top: 0px;
+        }
 
+        #grid > section {
+            background-color: yellow;
+            display: none;
+            font-size: 25px;
+            grid-column: span 4;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #grid div.highlighted {
+            background: #5a594e;
+        }
+
+        #grid > section > h3 {
+            margin-bottom: -3px;
+        }
+
+        #grid > section > p {
+            margin-top: -3px;
+        }
+
+        h1 {
+            font-weight: normal;
+        }
+
+    </style>
 </head>
 <body>
-  <h1>Create four groups of four!</h1>
-  <div id="grid">
-    <div>Ball</div>
-    <div>Fang</div>
-    <div>Tusk</div>
-    <div>Slight</div>
-    <div>Labor</div>
-    <div>Little</div>
-    <div>Earth</div>
-    <div>Kick</div>
-    <div>Canine</div>
-    <div>May</div>
-    <div>Molar</div>
-    <div>Dinky</div>
-    <div>Minute</div>
-    <div>Groundhog</div>
-    <div>Blast</div>
-    <div>Riot</div>
-  </div>
-  <p>Mistakes remaining:</p>
-  <button id ="submitButton" type="submit" disabled>Try it!</button>
+    <h1>Create four groups of four!</h1>
+    <div id="grid">
+        <div>Ball</div>
+        <div>Fang</div>
+        <div>Tusk</div>
+        <div>Slight</div>
+        <section class="solution teeth tooth">
+            <h3>Related to teeth</h3>
+            <p>CANINE, MOLAR, TUSK, FANG</p>
+        </section>
+        <div>Labor</div>
+        <div>Little</div>
+        <div>Earth</div>
+        <div>Kick</div>
+        <div>Canine</div>
+        <div>May</div>
+        <div>Molar</div>
+        <div>Dinky</div>
+        <div>Minute</div>
+        <div>Groundhog</div>
+        <div>Blast</div>
+        <div>Riot</div>
+    </div>
 
-<script>
-  const grid = document.getElementById("grid");
-  const answers = [
-    ["canine", "molar", "fang", "tusk"],
-    ["dinky", "minute", "slight", "little"],
-    ["ball", "blast", "riot", "kick"],
-    ["labor", "may", "earth", "groundhog"]
-  ]
+    <div id="mistakes"> Mistakes remaining: <span>4</span></div>
+</body>
+    <button id="submitButton" type="submit" disabled>Try it!</button>
 
-  function noOfHighlightedCells() {
-    return document.querySelectorAll('.highlighted').length
-  }
+    <script>
+        const grid = document.getElementById("grid");
+        let mistakesRemaining = 4;
+        function delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
 
-  const submitButton = document.getElementById("submitButton");
-  submitButton.addEventListener("click", () => {
-    tryWords();
-  });
-  grid.addEventListener("click", (e) => {
-    const cell = e.target;
-    if (cell.id == "grid") { // we don't want to process clicks that happen on the entire grid (e.g. when clicking inbetween grid cells)
-      return
-    }
-    if (cell.classList.contains("highlighted")) {
-      cell.classList.remove("highlighted");
-      cell.style.backgroundColor = "#efefe6";
-    } else if (noOfHighlightedCells() < 4) {
-      cell.style.backgroundColor = "#5a594e";
-      cell.classList.add("highlighted");
-    }
+        async function shake(cells) {
+          for (const cell of cells) {
+            cell.animate([
+              {top: '-10px'}
+            ], {
+              duration: 300,
+            });
+            await delay(50);
+          }
+          return delay(300);
+        }
 
-    if (noOfHighlightedCells() == 4) {
-      submitButton.disabled = false;
-    } else {
-      submitButton.disabled = true;
-    }
-  });
-  function tryWords() {
-    const grid = document.getElementById("grid");
-    for (const cell of grid.children) {
-      if (cell.classList.contains("highlighted")) {
-        console.log(cell.innerText);
-      }
-    }
-  }
+        async function animateSwap(from, to) {
+            const x1 = from.offsetLeft;
+            const y1 = from.offsetTop;
+            const x2 = to.offsetLeft;
+            const y2 = to.offsetTop;
+            from.style.top = `${y2 - y1}px`;
+            from.style.left = `${x2 - x1}px`;
+            to.style.top = `${y1 - y2}px`;
+            to.style.left = `${x1 - x2}px`;
+            return new Promise(resolve => {
+              setTimeout(() => {
+                  // After the animation has played, we actually swap the elements around in the DOM
+                  // so that the DOM order matches the new visual order.
+                  to.style.left = "0px";
+                  to.style.top = "0px";
+                  from.style.left = "0px";
+                  from.style.top = "0px";
+                  const parent = from.parentNode;
+                  const sibling =
+                      from.nextSibling === to ? from : from.nextSibling;
 
-</script>
+                  to.parentNode.insertBefore(from, to);
+                  parent.insertBefore(to, sibling);
+                  resolve();
+              }, 800);
+            })
+        }
+
+        const allAnswers = [
+            {
+                clues: ["teeth", "tooth"],
+                answer: new Set(["canine", "molar", "fang", "tusk"]),
+            },
+            {
+                clues: ["size", "small"],
+                answer: new Set(["dinky", "minute", "slight", "little"]),
+            },
+            {
+                clues: ["party", "rave", "good time"],
+                answer: new Set(["ball", "blast", "riot", "kick"]),
+            },
+            {
+                clues: ["day"],
+                answer: new Set(["labor", "may", "earth", "groundhog"]),
+            },
+        ];
+
+        function noOfHighlightedCells() {
+            return document.querySelectorAll(".highlighted").length;
+        }
+
+        const submitButton = document.getElementById("submitButton");
+        submitButton.addEventListener("click", () => {
+            tryWords();
+        });
+        grid.addEventListener("click", (e) => {
+            const cell = e.target;
+            if (cell.id == "grid") {
+                // we don't want to process clicks that happen on the entire grid (e.g. when clicking inbetween grid cells)
+                return;
+            }
+            if (cell.classList.contains("highlighted")) {
+                cell.classList.remove("highlighted");
+            } else if (noOfHighlightedCells() < 4) {
+                cell.classList.add("highlighted");
+            }
+
+            if (noOfHighlightedCells() == 4) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        });
+
+        async function displaySolution(clue) {
+          const highlighted = document.querySelectorAll("#grid div.highlighted");
+          for (cell of highlighted) {
+            cell.style.display = 'none'
+            cell.classList.remove("highlighted");
+          }
+
+          const solutions = document.querySelectorAll("#grid section.solution")
+          for (let solution of solutions) {
+            if (solution.classList.contains(clue)) {
+              solution.style.display = 'block';
+              solution.animate([{transform: 'scale(1, 1)'}, {transform: 'scale(1.2, 0.9)'}, {transform: 'scale(1, 1)'}], {
+                duration: 300
+              })
+            }
+          }
+        }
+
+        // solve by writing word that relates all of them
+        async function tryWords() {
+            const guess = new Set();
+            const highlighted = Array.from(
+                document.querySelectorAll("#grid div.highlighted"),
+            );
+            await shake(highlighted);
+            for (const cell of highlighted) {
+                guess.add(cell.innerText.toLowerCase());
+            }
+            let correct = false;
+            for (const { clues, answer } of allAnswers) {
+                if (answer.symmetricDifference(guess).size === 0) {
+                    const explanation = prompt("pls explain?");
+                    if (explanation) {
+                        for (const clue of clues) {
+                            if (explanation.includes(clue)) {
+                                correct = true;
+                                // Move all the correctly highlighted cells into the first row,
+                                // swapping with existing cells as needed.
+                                let swaps = [];
+                                for (let i = 0; i < 4; i++) {
+                                    const cell =
+                                        document.getElementById("grid")
+                                            .children[i];
+                                    if (
+                                        !cell.classList.contains("highlighted")
+                                    ) {
+                                        swaps.push(animateSwap(cell, highlighted.pop()));
+                                    }
+                                }
+                                await Promise.all(swaps);
+                                displaySolution(clue);
+                                // once we are done with the animation
+                                break;
+
+                            }
+                        }
+                    }
+                }
+            }
+            if (!correct) {
+                mistakesRemaining--;
+                console.log("you are a disgrace");
+                const remaining = document.querySelector("#mistakes span");
+                remaining.innerText = mistakesRemaining;
+            }
+        }
+    </script>
 </body>
