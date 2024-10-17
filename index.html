@@ -42,43 +42,67 @@
         }
 
         #grid > section {
-            background-color: yellow;
             display: none;
             font-size: 25px;
             grid-column: span 4;
             border-radius: 5px;
             text-align: center;
+            h3 {
+                margin-bottom: -3px;
+            }
+            p {
+                margin-top: -3px;
+            }
+        }
+
+        #grid > section.solution1 {
+            background-color: yellow;
+        }
+
+        #grid > section.solution2 {
+            background-color: purple;
+        }
+
+        #grid > section.solution3 {
+            background-color: green;
+        }
+
+        #grid > section.solution4 {
+            background-color: lightblue;
         }
 
         #grid div.highlighted {
             background: #5a594e;
         }
 
-        #grid > section > h3 {
-            margin-bottom: -3px;
-        }
-
-        #grid > section > p {
-            margin-top: -3px;
-        }
 
         h1 {
             font-weight: normal;
         }
 
+        #mistakes {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #submitButton {
+            border-radius: 32px;
+            font-size: 16px;
+            min-width: 6em;
+            font-weight: 600;
+            padding: 10px;
+            background-color: white;
+        }
+
     </style>
 </head>
-<body>
+
     <h1>Create four groups of four!</h1>
     <div id="grid">
         <div>Ball</div>
         <div>Fang</div>
         <div>Tusk</div>
         <div>Slight</div>
-        <section class="solution teeth tooth">
-            <h3>Related to teeth</h3>
-            <p>CANINE, MOLAR, TUSK, FANG</p>
-        </section>
         <div>Labor</div>
         <div>Little</div>
         <div>Earth</div>
@@ -93,9 +117,38 @@
         <div>Riot</div>
     </div>
 
+
+    <template id="solution1">
+        <section class="solution1">
+            <h3>Related to teeth</h3>
+            <p>CANINE, MOLAR, TUSK, FANG</p>
+        </section>
+    </template>
+
+    <template id="solution2">
+        <section class="solution2">
+            <h3>Related to a small size</h3>
+            <p>DINKY, MINUTE, SLIGHT, LITTLE</p>
+        </section>
+    </template>
+
+    <template id="solution3">
+        <section class="solution3">
+            <h3>Party party party!</h3>
+            <p>BALL, BLAST, RIOT, KICK</p>
+        </section>
+    </template>
+
+    <template id="solution4">
+        <section class="solution4">
+            <h3>What a day what a day</h3>
+            <p>LABOR, MAY, EARTH, GROUNDHOG</p>
+        </section>
+    </template>
+
     <div id="mistakes"> Mistakes remaining: <span>4</span></div>
-</body>
     <button id="submitButton" type="submit" disabled>Try it!</button>
+</body>
 
     <script>
         const grid = document.getElementById("grid");
@@ -146,19 +199,15 @@
 
         const allAnswers = [
             {
-                clues: ["teeth", "tooth"],
                 answer: new Set(["canine", "molar", "fang", "tusk"]),
             },
             {
-                clues: ["size", "small"],
                 answer: new Set(["dinky", "minute", "slight", "little"]),
             },
             {
-                clues: ["party", "rave", "good time"],
                 answer: new Set(["ball", "blast", "riot", "kick"]),
             },
             {
-                clues: ["day"],
                 answer: new Set(["labor", "may", "earth", "groundhog"]),
             },
         ];
@@ -190,22 +239,34 @@
             }
         });
 
-        async function displaySolution(clue) {
+        async function displaySolution(index) {
           const highlighted = document.querySelectorAll("#grid div.highlighted");
-          for (cell of highlighted) {
+          for (const cell of highlighted) {
             cell.style.display = 'none'
+            cell.classList.add('solved');
             cell.classList.remove("highlighted");
           }
 
-          const solutions = document.querySelectorAll("#grid section.solution")
-          for (let solution of solutions) {
-            if (solution.classList.contains(clue)) {
-              solution.style.display = 'block';
-              solution.animate([{transform: 'scale(1, 1)'}, {transform: 'scale(1.2, 0.9)'}, {transform: 'scale(1, 1)'}], {
-                duration: 300
-              })
+          let cellWeWantToInsertSolutionBefore;
+          const cells = document.querySelectorAll("#grid div");
+          for (const cell of cells) {
+            if (!cell.classList.contains("solved")) {
+              cellWeWantToInsertSolutionBefore = cell;
+              break;
             }
           }
+
+          if ("content" in document.createElement("template")) {
+            const grid = document.getElementById("grid");
+            const template = document.querySelector(`#solution${index}`);
+            const clone = template.content.cloneNode(true);
+            grid.insertBefore(clone, cellWeWantToInsertSolutionBefore);
+          }
+          const solution = document.querySelector(`#grid section.solution${index}`)
+            solution.style.display = 'block';
+            solution.animate([{transform: 'scale(1, 1)'}, {transform: 'scale(1.2, 0.9)'}, {transform: 'scale(1, 1)'}], {
+              duration: 300
+            })
         }
 
         // solve by writing word that relates all of them
@@ -219,35 +280,27 @@
                 guess.add(cell.innerText.toLowerCase());
             }
             let correct = false;
-            for (const { clues, answer } of allAnswers) {
+            let solutionNumber = 1;
+            for (const { answer } of allAnswers) {
                 if (answer.symmetricDifference(guess).size === 0) {
-                    const explanation = prompt("pls explain?");
-                    if (explanation) {
-                        for (const clue of clues) {
-                            if (explanation.includes(clue)) {
-                                correct = true;
-                                // Move all the correctly highlighted cells into the first row,
-                                // swapping with existing cells as needed.
-                                let swaps = [];
-                                for (let i = 0; i < 4; i++) {
-                                    const cell =
-                                        document.getElementById("grid")
-                                            .children[i];
-                                    if (
-                                        !cell.classList.contains("highlighted")
-                                    ) {
-                                        swaps.push(animateSwap(cell, highlighted.pop()));
-                                    }
-                                }
-                                await Promise.all(swaps);
-                                displaySolution(clue);
-                                // once we are done with the animation
-                                break;
-
-                            }
+                    correct = true;
+                    // Move all the correctly highlighted cells into the first row,
+                    // swapping with existing cells as needed.
+                    let swaps = [];
+                    for (let i = 0; i < 4; i++) {
+                        const cell = document.getElementById("grid").children[i];
+                        if (
+                            !cell.classList.contains("highlighted") && !cell.classList.contains("solved")
+                        ) {
+                            swaps.push(animateSwap(cell, highlighted.pop()));
                         }
                     }
+                    await Promise.all(swaps);
+                    displaySolution(solutionNumber);
+                    // once we are done with the animation
+                    break;
                 }
+                solutionNumber++;
             }
             if (!correct) {
                 mistakesRemaining--;
