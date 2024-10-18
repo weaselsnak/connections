@@ -85,13 +85,25 @@
             margin-bottom: 10px;
         }
 
-        #submitButton {
+        #submitButton.disabled {
             border-radius: 32px;
             font-size: 16px;
             min-width: 6em;
             font-weight: 600;
             padding: 10px;
             background-color: white;
+        }
+
+        #submitButton.enabled {
+            border-radius: 32px;
+            font-size: 16px;
+            min-width: 6em;
+            font-weight: 600;
+            padding: 10px;
+            background-color: black;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
 
     </style>
@@ -147,7 +159,7 @@
     </template>
 
     <div id="mistakes"> Mistakes remaining: <span>4</span></div>
-    <button id="submitButton" type="submit" disabled>Try it!</button>
+    <button id="submitButton" class="disabled" disabled type="submit">Try it!</button>
 </body>
 
     <script>
@@ -233,9 +245,13 @@
             }
 
             if (noOfHighlightedCells() == 4) {
-                submitButton.disabled = false;
+              submitButton.classList.remove("disabled");
+              submitButton.classList.add("enabled");
+              submitButton.disabled = false;
             } else {
-                submitButton.disabled = true;
+              submitButton.classList.remove("enabled");
+              submitButton.classList.add("disabled");
+              submitButton.disabled = true;
             }
         });
 
