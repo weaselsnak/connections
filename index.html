@@ -295,6 +295,16 @@
             for (const cell of highlighted) {
                 guess.add(cell.innerText.toLowerCase());
             }
+            let unsolvedTopRow = [];
+            let cells = Array.from(document.querySelectorAll("#grid div"));
+            for (const cell of cells) {
+              if (!cell.classList.contains("solved")) {
+                unsolvedTopRow.push(cell);
+                if (unsolvedTopRow.length == 4) {
+                  break
+                }
+              }
+            }
             let correct = false;
             let solutionNumber = 1;
             for (const { answer } of allAnswers) {
@@ -303,14 +313,13 @@
                     // Move all the correctly highlighted cells into the first row,
                     // swapping with existing cells as needed.
                     let swaps = [];
-                    for (let i = 0; i < 4; i++) {
-                        const cell = document.getElementById("grid").children[i];
+                    for (const cell of unsolvedTopRow) {
                         if (
                             !cell.classList.contains("highlighted") && !cell.classList.contains("solved")
                         ) {
                             swaps.push(animateSwap(cell, highlighted.pop()));
                         }
-                    }
+                      }
                     await Promise.all(swaps);
                     displaySolution(solutionNumber);
                     // once we are done with the animation
