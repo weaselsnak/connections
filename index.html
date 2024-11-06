@@ -105,6 +105,47 @@
             border: none;
             cursor: pointer;
         }
+        #toast{
+          visibility: hidden;
+          min-width: 250px;
+          margin-left: -125px;
+          background-color: #333;
+          color: #fff;
+          text-align: center;
+          border-radius: 2px;
+          padding: 16px;
+          position: fixed;
+          z-index: 1;
+          left: 50%;
+          bottom: 30px;
+          font-size: 17px;
+        }
+
+        #toast.show {
+          visibility: visible;
+          -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+          animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @-webkit-keyframes fadein {
+          from {bottom: 0; opacity: 0;}
+          to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadein {
+          from {bottom: 0; opacity: 0;}
+          to {bottom: 30px; opacity: 1;}
+        }
+
+        @-webkit-keyframes fadeout {
+          from {bottom: 30px; opacity: 1;}
+          to {bottom: 0; opacity: 0;}
+        }
+
+        @keyframes fadeout {
+          from {bottom: 30px; opacity: 1;}
+          to {bottom: 0; opacity: 0;}
+        }
 
     </style>
 </head>
@@ -160,11 +201,29 @@
 
     <div id="mistakes"> Mistakes remaining: <span>4</span></div>
     <button id="submitButton" class="disabled" disabled type="submit">Try it!</button>
+    <div id="toast"></div>
+
 </body>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        var socket = io();
+        socket.on('solution', (data) => {
+            const cells = Array.from(document.querySelectorAll("#grid div"));
+            const solutionTemplate = document.getElementById(`solution${data.solutionNo}`)
+            const solution = solutionTemplate.content.querySelector("section p").innerText
+            let words = new Set(solution.split(", "))
+            for (const cell of cells) {
+                if (words.has(cell.innerText.toUpperCase())) {
+                    cell.style.display = 'none'
+                    cell.classList.add('solved');
+                }
+            }
+            showToast(data.text);
+        })
         const grid = document.getElementById("grid");
         let mistakesRemaining = 4;
+        let solved = 0;
         function delay(ms) {
             return new Promise((resolve) => setTimeout(resolve, ms));
         }
@@ -207,6 +266,13 @@
                   resolve();
               }, 800);
             })
+        }
+
+        function showToast(msg) {
+          var toast = document.getElementById("toast");
+          toast.innerText = msg
+          toast.className = "show";
+          setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
         const allAnswers = [
@@ -255,7 +321,7 @@
             }
         });
 
-        async function displaySolution(index) {
+        async function displaySolution(solutionNumber) {
           const highlighted = document.querySelectorAll("#grid div.highlighted");
           for (const cell of highlighted) {
             cell.style.display = 'none'
@@ -274,11 +340,11 @@
 
           if ("content" in document.createElement("template")) {
             const grid = document.getElementById("grid");
-            const template = document.querySelector(`#solution${index}`);
+            const template = document.querySelector(`#solution${solutionNumber}`);
             const clone = template.content.cloneNode(true);
             grid.insertBefore(clone, cellWeWantToInsertSolutionBefore);
           }
-          const solution = document.querySelector(`#grid section.solution${index}`)
+          const solution = document.querySelector(`#grid section.solution${solutionNumber}`)
             solution.style.display = 'block';
             solution.animate([{transform: 'scale(1, 1)'}, {transform: 'scale(1.2, 0.9)'}, {transform: 'scale(1, 1)'}], {
               duration: 300
@@ -313,6 +379,7 @@
                     // Move all the correctly highlighted cells into the first row,
                     // swapping with existing cells as needed.
                     let swaps = [];
+                    let solvedCells = [];
                     for (const cell of unsolvedTopRow) {
                         if (
                             !cell.classList.contains("highlighted") && !cell.classList.contains("solved")
@@ -322,16 +389,28 @@
                       }
                     await Promise.all(swaps);
                     displaySolution(solutionNumber);
+                    // console.log(answer)
+                    let data = {text: "that's one!", solutionNo: solutionNumber, word: "Canine"};
+                    socket.emit('solved', data);
+                    solved++
                     // once we are done with the animation
                     break;
                 }
                 solutionNumber++;
             }
+            /*
+            if (solved == 1) {
+                window.alert("WELL DONE")
+            }
+            */
             if (!correct) {
                 mistakesRemaining--;
                 console.log("you are a disgrace");
                 const remaining = document.querySelector("#mistakes span");
                 remaining.innerText = mistakesRemaining;
+                if (mistakesRemaining == 0) {
+                  alert("YOU LOST")
+                }
             }
         }
     </script>
