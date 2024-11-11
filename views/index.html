@@ -120,84 +120,25 @@
           bottom: 30px;
           font-size: 17px;
         }
-
-        #toast.show {
-          visibility: visible;
-          -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-          animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-
-        @-webkit-keyframes fadein {
-          from {bottom: 0; opacity: 0;}
-          to {bottom: 30px; opacity: 1;}
-        }
-
-        @keyframes fadein {
-          from {bottom: 0; opacity: 0;}
-          to {bottom: 30px; opacity: 1;}
-        }
-
-        @-webkit-keyframes fadeout {
-          from {bottom: 30px; opacity: 1;}
-          to {bottom: 0; opacity: 0;}
-        }
-
-        @keyframes fadeout {
-          from {bottom: 30px; opacity: 1;}
-          to {bottom: 0; opacity: 0;}
-        }
-
     </style>
 </head>
 
     <h1>Create four groups of four!</h1>
     <div id="grid">
-        <div>Ball</div>
-        <div>Fang</div>
-        <div>Tusk</div>
-        <div>Slight</div>
-        <div>Labor</div>
-        <div>Little</div>
-        <div>Earth</div>
-        <div>Kick</div>
-        <div>Canine</div>
-        <div>May</div>
-        <div>Molar</div>
-        <div>Dinky</div>
-        <div>Minute</div>
-        <div>Groundhog</div>
-        <div>Blast</div>
-        <div>Riot</div>
+        <% for (let i=0; i < words.length; i++) { %>
+            <div><%= words[i].content %></div>
+        <% } %>
     </div>
 
 
-    <template id="solution1">
-        <section class="solution1">
-            <h3>Related to teeth</h3>
-            <p>CANINE, MOLAR, TUSK, FANG</p>
+    <% for (let i=0; i < categories.length; i++) { %>
+    <template id="solution<%= i+1 %>">
+        <section class="solution<%= i+1 %>">
+            <h3><%= categories[i].title %></h3>
+            <p><%= categories[i].cards.map(card => card.content).join(", ") %></p>
         </section>
     </template>
-
-    <template id="solution2">
-        <section class="solution2">
-            <h3>Related to a small size</h3>
-            <p>DINKY, MINUTE, SLIGHT, LITTLE</p>
-        </section>
-    </template>
-
-    <template id="solution3">
-        <section class="solution3">
-            <h3>Party party party!</h3>
-            <p>BALL, BLAST, RIOT, KICK</p>
-        </section>
-    </template>
-
-    <template id="solution4">
-        <section class="solution4">
-            <h3>What a day what a day</h3>
-            <p>LABOR, MAY, EARTH, GROUNDHOG</p>
-        </section>
-    </template>
+    <% } %>
 
     <div id="mistakes"> Mistakes remaining: <span>4</span></div>
     <button id="submitButton" class="disabled" disabled type="submit">Try it!</button>
@@ -214,7 +155,7 @@
             const solution = solutionTemplate.content.querySelector("section p").innerText
             let words = new Set(solution.split(", "))
             for (const cell of cells) {
-                if (words.has(cell.innerText.toUpperCase())) {
+                if (words.has(cell.innerText)) {
                     cell.style.display = 'none'
                     cell.classList.add('solved');
                 }
@@ -223,7 +164,7 @@
         })
         const grid = document.getElementById("grid");
         let mistakesRemaining = 4;
-        let solved = 0;
+        let numberSolved = 0;
         function delay(ms) {
             return new Promise((resolve) => setTimeout(resolve, ms));
         }
@@ -268,26 +209,37 @@
             })
         }
 
-        function showToast(msg) {
+        async function showToast(msg) {
           var toast = document.getElementById("toast");
-          toast.innerText = msg
-          toast.className = "show";
-          setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+          toast.innerText = msg;
+          toast.style.visibility = "visible";
+
+          const fadeIn = toast.animate([
+            { transform: 'translateY(30px)', opacity: 0 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ], {
+            duration: 500,
+            easing: "ease-out",
+          });
+          await fadeIn.finished;
+          await delay(3000);
+          const fadeOut = toast.animate([
+             { transform: 'translateY(0)', opacity: 1 },
+             { transform: 'translateY(30px)', opacity: 0 }
+           ], {
+             duration: 500,
+             easing: "ease-in"
+           });
+          await fadeOut.finished;
+          toast.style.visibility = "hidden";
         }
 
         const allAnswers = [
-            {
-                answer: new Set(["canine", "molar", "fang", "tusk"]),
-            },
-            {
-                answer: new Set(["dinky", "minute", "slight", "little"]),
-            },
-            {
-                answer: new Set(["ball", "blast", "riot", "kick"]),
-            },
-            {
-                answer: new Set(["labor", "may", "earth", "groundhog"]),
-            },
+          <% for (let i=0; i < categories.length; i++) { %>
+          {
+            answer: new Set("<%= categories[i].cards.map(cat => cat.content).join(',') %>".split(',')),
+          },
+          <% } %>
         ];
 
         function noOfHighlightedCells() {
@@ -350,7 +302,7 @@
               duration: 300
             })
         }
-
+        let numbersToWords = ["one", "two", "three", "four"];
         // solve by writing word that relates all of them
         async function tryWords() {
             const guess = new Set();
@@ -359,7 +311,7 @@
             );
             await shake(highlighted);
             for (const cell of highlighted) {
-                guess.add(cell.innerText.toLowerCase());
+                guess.add(cell.innerText);
             }
             let unsolvedTopRow = [];
             let cells = Array.from(document.querySelectorAll("#grid div"));
@@ -389,27 +341,21 @@
                       }
                     await Promise.all(swaps);
                     displaySolution(solutionNumber);
-                    // console.log(answer)
-                    let data = {text: "that's one!", solutionNo: solutionNumber, word: "Canine"};
+                    const txtToSend = `that's ${numbersToWords[numberSolved]}!`
+                    numberSolved++;
+                    let data = {text: txtToSend, solutionNo: solutionNumber};
                     socket.emit('solved', data);
-                    solved++
                     // once we are done with the animation
                     break;
                 }
                 solutionNumber++;
             }
-            /*
-            if (solved == 1) {
-                window.alert("WELL DONE")
-            }
-            */
             if (!correct) {
                 mistakesRemaining--;
-                console.log("you are a disgrace");
                 const remaining = document.querySelector("#mistakes span");
                 remaining.innerText = mistakesRemaining;
                 if (mistakesRemaining == 0) {
-                  alert("YOU LOST")
+                  alert("You've used up all your tries you dingus")
                 }
             }
         }
