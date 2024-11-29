@@ -26,7 +26,7 @@
             color: black;
             font-weight: bold;
             text-align: center;
-            font-size: 30px;
+            font-size: 26px;
             user-select: none;
             moz-user-select: none;
             webkit-text-select: none;
@@ -150,6 +150,7 @@
     <script>
         var socket = io();
         socket.on('solution', (data) => {
+            console.log(data)
             const cells = Array.from(document.querySelectorAll("#grid div"));
             const solutionTemplate = document.getElementById(`solution${data.solutionNo}`)
             const solution = solutionTemplate.content.querySelector("section p").innerText
@@ -303,7 +304,6 @@
             })
         }
         let numbersToWords = ["one", "two", "three", "four"];
-        // solve by writing word that relates all of them
         async function tryWords() {
             const guess = new Set();
             const highlighted = Array.from(
@@ -341,9 +341,15 @@
                       }
                     await Promise.all(swaps);
                     displaySolution(solutionNumber);
-                    const txtToSend = `that's ${numbersToWords[numberSolved]}!`
+                    let txtToSend = `That's ${numbersToWords[numberSolved]}!`
                     numberSolved++;
-                    let data = {text: txtToSend, solutionNo: solutionNumber};
+                    if (numberSolved == 3) {
+                      showToast("You've won!")
+                    } else if (numberSolved == 4) {
+                      showToast("You've won!")
+                      txtToSend += ` And that's a drubbing!!!`;
+                    }
+                    let data = {text: txtToSend, solutionNo: solutionNumber, noSolved: numberSolved};
                     socket.emit('solved', data);
                     // once we are done with the animation
                     break;
@@ -355,7 +361,15 @@
                 const remaining = document.querySelector("#mistakes span");
                 remaining.innerText = mistakesRemaining;
                 if (mistakesRemaining == 0) {
-                  alert("You've used up all your tries you dingus")
+                    showToast("You've fucked it")
+                    const cells = Array.from(document.querySelectorAll("#grid div"));
+                    for (const cell of cells) {
+                      cell.style.display = 'none';
+                    }
+
+                  for (let i = 1; i <= 4; i++) {
+                    displaySolution(i);
+                  }
                 }
             }
         }
