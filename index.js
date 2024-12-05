@@ -10,7 +10,8 @@ const io = new Server(server);
 
 app.get("/", async (req, res) => {
   const currentDate = new Date();
-  const url = `https://www.nytimes.com/svc/connections/v2/${currentDate.toISOString().split("T")[0]}.json`;
+  const url = `https://www.nytimes.com/svc/connections/v2/${currentDate.toLocaleDateString("sv", {timeZone:'Australia/Sydney'})}.json`
+  console.log(`fetching ${url}`);
   const json = await (await fetch(url)).json();
   const words = json.categories.flatMap(({ cards }) => cards);
   words.sort((a, b) => a.position - b.position);
