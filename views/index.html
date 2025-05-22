@@ -10,7 +10,7 @@
         }
         #grid {
             display: grid;
-            grid-template-columns: 85px 85px 85px 85px;
+            grid-template-columns: 87px 87px 87px 87px;
             gap: 5px;
         }
 
@@ -26,11 +26,11 @@
             color: black;
             font-weight: bold;
             text-align: center;
-            font-size: 16px;
+            font-size: 14px;
             user-select: none;
-            moz-user-select: none;
-            webkit-text-select: none;
-            webkit-user-select: none;
+            -moz-user-select: none;
+            -webkit-text-select: none;
+            -webkit-user-select: none;
             cursor: pointer;
             position: relative;
             transition:
@@ -43,7 +43,7 @@
 
         #grid > section {
             display: none;
-            font-size: 25px;
+            font-size: 14px;
             grid-column: span 4;
             border-radius: 5px;
             text-align: center;
@@ -145,13 +145,14 @@
     <button id="submitButton" class="disabled" disabled type="submit">Try it!</button>
     <div id="toast"></div>
 
-</body>
+    </body>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
         socket.on('solution', (data) => {
             console.log(data)
+            // displaySolution(data) is we would rather the same appears on the losing opponent's screen we can do this instead otherwise just make the tiles disappear
             const cells = Array.from(document.querySelectorAll("#grid div"));
             const solutionTemplate = document.getElementById(`solution${data.solutionNo}`)
             const solution = solutionTemplate.content.querySelector("section p").innerText
@@ -160,7 +161,11 @@
                 if (words.has(cell.innerText)) {
                     cell.style.display = 'none'
                     cell.classList.add('solved');
-                }
+                    // in case the opponent's highlighted cells are part of the solution we need to clear them otherwise the highlighted state is incorrect
+                    if (cell.classList.contains("highlighted")) {
+                      cell.classList.remove("highlighted");
+                    }
+                  }
             }
             showToast(data.text);
         })
@@ -362,7 +367,7 @@
                 const remaining = document.querySelector("#mistakes span");
                 remaining.innerText = mistakesRemaining;
                 if (mistakesRemaining == 0) {
-                    showToast("You've fucked it")
+                    showToast("You've used up all your turns")
                     const cells = Array.from(document.querySelectorAll("#grid div"));
                     for (const cell of cells) {
                       cell.style.display = 'none';
